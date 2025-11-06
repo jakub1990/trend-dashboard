@@ -11,7 +11,12 @@ st.write("Sprawdź trendy akcji lub kryptowalut w prosty sposób.")
 symbol = st.text_input("Podaj symbol (np. AAPL, BTC-USD):", "AAPL")
 
 if symbol:
-    data = yf.download(symbol, period="3mo", interval="1d", group_by='ticker')
+    data = yf.download(symbol, period="3mo", interval="1d")
+
+    # Spłaszczenie kolumn MultiIndex
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = data.columns.get_level_values(0)
+
     if not data.empty:
         st.subheader(f"Dane dla: {symbol}")
         st.write(data.tail())
