@@ -1,7 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
@@ -25,6 +25,17 @@ with col2:
         value=datetime.now(),
         max_value=datetime.now()
     )
+
+# Funkcja do zamiany nazw miesięcy na polskie
+def zamien_na_polskie(data_tekst):
+    miesiace = {
+        'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
+        'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
+        'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
+    }
+    for ang, pol in miesiace.items():
+        data_tekst = data_tekst.replace(ang, pol)
+    return data_tekst
 
 if symbol and data_od and data_do:
     if data_od >= data_do:
@@ -73,45 +84,46 @@ if symbol and data_od and data_do:
             with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
                 st.dataframe(data.tail(10), width='stretch')
 
-            # Wykres z polskimi miesiącami
-            fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
+            # Wykres z polskimi miesiącami używając graph_objects
+            fig = go.Figure()
 
-            # Słownik dla polskich nazw miesięcy
-            polskie_miesiace = {
-                'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
-                'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
-                'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru',
-                'January': 'Styczeń', 'February': 'Luty', 'March': 'Marzec',
-                'April': 'Kwiecień', 'May': 'Maj', 'June': 'Czerwiec',
-                'July': 'Lipiec', 'August': 'Sierpień', 'September': 'Wrzesień',
-                'October': 'Październik', 'November': 'Listopad', 'December': 'Grudzień'
-            }
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=data['Zamknięcie'],
+                mode='lines',
+                name='Cena zamknięcia',
+                line=dict(color='#636EFA', width=2),
+                hovertemplate='<b>%{x|%d-%m-%Y}</b><br>Cena: $%{y:.2f}<extra></extra>'
+            ))
 
-            # Formatowanie osi X z polskimi nazwami
+            # Ustawienie polskich nazw miesięcy na osi X
             fig.update_xaxes(
                 tickformat='%d %b %Y',
-                ticklabelmode='instant'
+                tickangle=-45,
+                dtick="M1" if len(data) > 365 else None  # Pokaż co miesiąc jeśli więcej niż rok danych
             )
 
+            # Zamiana nazw miesięcy na polskie
             fig.update_layout(
+                title=f'Ceny zamknięcia {symbol}',
                 xaxis_title="Data",
                 yaxis_title="Cena (USD)",
                 hovermode='x unified',
-                xaxis=dict(
-                    tickmode='auto',
-                    nticks=20
-                )
+                template='plotly_white'
             )
 
-            # Zamiana angielskich nazw na polskie w customdata
-            # Pobierz aktualny layout i zamień nazwy miesięcy
-            if fig.layout.xaxis.ticktext:
-                new_labels = []
-                for label in fig.layout.xaxis.ticktext:
-                    for eng, pol in polskie_miesiace.items():
-                        label = label.replace(eng, pol)
-                    new_labels.append(label)
-                fig.update_xaxes(ticktext=new_labels)
+            # Używamy JavaScript do zamiany nazw miesięcy
+            fig.update_xaxes(ticktext=[
+                zamien_na_polskie(d.strftime('%d %b %Y')) for d in pd.date_range(
+                    start=data.index.min(), 
+                    end=data.index.max(), 
+                    freq='MS' if len(data) > 365 else '7D'
+                )
+            ], tickvals=pd.date_range(
+                start=data.index.min(), 
+                end=data.index.max(), 
+                freq='MS' if len(data) > 365 else '7D'
+            ))
 
             st.plotly_chart(fig, width='stretch')
 
