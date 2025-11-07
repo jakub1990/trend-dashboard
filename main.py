@@ -3,13 +3,6 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
-import locale
-
-# Ustawienie polskiej lokalizacji dla dat (jeśli dostępna)
-try:
-    locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
-except:
-    pass
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
@@ -37,8 +30,12 @@ if symbol and data_od and data_do:
     if data_od >= data_do:
         st.error("Data początkowa musi być wcześniejsza niż data końcowa!")
     else:
+        # Wyświetl wybrane daty
+        st.info(f"🔍 Pobieram dane od {data_od.strftime('%d-%m-%Y')} do {data_do.strftime('%d-%m-%Y')}")
+
         # Pobieranie danych w wybranym zakresie
-        data = yf.download(symbol, start=data_od, end=data_do, progress=False)
+        with st.spinner('Pobieram dane...'):
+            data = yf.download(symbol, start=data_od, end=data_do, progress=False)
 
         # Spłaszczenie kolumn MultiIndex
         if isinstance(data.columns, pd.MultiIndex):
@@ -56,18 +53,18 @@ if symbol and data_od and data_do:
 
         if not data.empty:
             st.subheader(f"Dane dla: {symbol}")
-            st.write(f"Pobrano {len(data)} dni notowań")
-            st.write(data.tail(10))
+
+            # Wyświetl faktyczny zakres pobranych danych
+            rzeczywisty_od = data.index.min().strftime('%d-%m-%Y')
+            rzeczywisty_do = data.index.max().strftime('%d-%m-%Y')
+            st.write(f"✅ Pobrano {len(data)} dni notowań (od {rzeczywisty_od} do {rzeczywisty_do})")
+
+            # Tabelka z ostatnimi 10 wpisami
+            st.write("**Ostatnie 10 notowań:**")
+            st.dataframe(data.tail(10), use_container_width=True)
 
             # Wykres
             fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
-
-            # Polskie nazwy miesięcy
-            polskie_miesiace = {
-                'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
-                'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
-                'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
-            }
 
             fig.update_layout(
                 xaxis_title="Data",
@@ -75,7 +72,7 @@ if symbol and data_od and data_do:
                 hovermode='x unified'
             )
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
             # Obliczenia trendu
             if len(data) >= 50:
