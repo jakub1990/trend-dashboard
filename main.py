@@ -67,21 +67,51 @@ if symbol and data_od and data_do:
 
             # Tabelka - WSZYSTKIE dane z możliwością przewijania
             st.write("**Wszystkie notowania (można przewijać i sortować):**")
-            # height=400 daje przewijalną tabelę
             st.dataframe(data, height=400, width='stretch')
 
             # Opcjonalnie: pokaż też ostatnie 10 wpisów wyraźnie
             with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
                 st.dataframe(data.tail(10), width='stretch')
 
-            # Wykres
+            # Wykres z polskimi miesiącami
             fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
+
+            # Słownik dla polskich nazw miesięcy
+            polskie_miesiace = {
+                'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
+                'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
+                'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru',
+                'January': 'Styczeń', 'February': 'Luty', 'March': 'Marzec',
+                'April': 'Kwiecień', 'May': 'Maj', 'June': 'Czerwiec',
+                'July': 'Lipiec', 'August': 'Sierpień', 'September': 'Wrzesień',
+                'October': 'Październik', 'November': 'Listopad', 'December': 'Grudzień'
+            }
+
+            # Formatowanie osi X z polskimi nazwami
+            fig.update_xaxes(
+                tickformat='%d %b %Y',
+                ticklabelmode='instant'
+            )
 
             fig.update_layout(
                 xaxis_title="Data",
                 yaxis_title="Cena (USD)",
-                hovermode='x unified'
+                hovermode='x unified',
+                xaxis=dict(
+                    tickmode='auto',
+                    nticks=20
+                )
             )
+
+            # Zamiana angielskich nazw na polskie w customdata
+            # Pobierz aktualny layout i zamień nazwy miesięcy
+            if fig.layout.xaxis.ticktext:
+                new_labels = []
+                for label in fig.layout.xaxis.ticktext:
+                    for eng, pol in polskie_miesiace.items():
+                        label = label.replace(eng, pol)
+                    new_labels.append(label)
+                fig.update_xaxes(ticktext=new_labels)
 
             st.plotly_chart(fig, width='stretch')
 
