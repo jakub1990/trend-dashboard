@@ -1,16 +1,19 @@
 import streamlit as st
 
 GA_ID = "G-LVHMK6XJJR"
-st.components.v1.html(f"""
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
-        gtag('config', '{GA_ID}');
-    </script>
-""", height=0, width=0)
 
+# Wstrzyknięcie kodu Analytics z pełnym uruchomieniem JS
+st.components.v1.html(f"""
+    <iframe srcdoc="
+        <script async src='https://www.googletagmanager.com/gtag/js?id={GA_ID}'></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{GA_ID}');
+        </script>
+    " style='display:none;' sandbox='allow-scripts'></iframe>
+""", height=1)
 
 import yfinance as yf
 import pandas as pd
