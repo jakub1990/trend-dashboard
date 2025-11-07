@@ -1,19 +1,24 @@
 import streamlit as st
+import requests
+import uuid
 
 GA_ID = "G-LVHMK6XJJR"
+GA_SECRET = "72pPIBtPTxqLNAo54HwLOg"
 
-# Wstrzyknięcie kodu Analytics z pełnym uruchomieniem JS
-st.components.v1.html(f"""
-    <iframe srcdoc="
-        <script async src='https://www.googletagmanager.com/gtag/js?id={GA_ID}'></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){{dataLayer.push(arguments);}}
-            gtag('js', new Date());
-            gtag('config', '{GA_ID}');
-        </script>
-    " style='display:none;' sandbox='allow-scripts'></iframe>
-""", height=1)
+def send_analytics_event(event_name="page_view"):
+    """Wyślij dane do Google Analytics przez Measurement Protocol"""
+    client_id = str(uuid.uuid4())  # unikalny identyfikator użytkownika
+    payload = {
+        "client_id": client_id,
+        "events": [{"name": event_name}]
+    }
+    url = f"https://www.google-analytics.com/mp/collect?measurement_id={GA_ID}&api_secret={GA_SECRET}"
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print("Błąd wysyłania do GA:", e)
+
+send_analytics_event("page_view")
 
 import yfinance as yf
 import pandas as pd
