@@ -3,6 +3,13 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+import locale
+
+# Ustawienie polskiej lokalizacji dla dat (jeśli dostępna)
+try:
+    locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
+except:
+    pass
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
@@ -26,69 +33,71 @@ with col2:
         max_value=datetime.now()
     )
 
-if symbol:
-    # Pobieranie danych w wybranym zakresie
-    data = yf.download(symbol, start=data_od, end=data_do)
-
-    # Spłaszczenie kolumn MultiIndex
-    if isinstance(data.columns, pd.MultiIndex):
-        data.columns = data.columns.get_level_values(0)
-
-    # Zmiana nazw kolumn na polskie
-    data = data.rename(columns={
-        'Open': 'Otwarcie',
-        'High': 'Maksimum',
-        'Low': 'Minimum',
-        'Close': 'Zamknięcie',
-        'Volume': 'Wolumen'
-    })
-    data.index.name = 'Data'
-
-    if not data.empty:
-        st.subheader(f"Dane dla: {symbol}")
-        st.write(f"Zakres: {data.index.min().strftime('%d-%m-%Y')} do {data.index.max().strftime('%d-%m-%Y')}")
-        st.write(data.tail())
-
-        # Wykres z polskimi nazwami miesięcy
-        fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
-
-        # Formatowanie osi X z polskimi nazwami miesięcy
-        fig.update_xaxes(
-            tickformat='%d %b %Y',
-            tickformatstops=[
-                dict(dtickrange=[None, 86400000], value='%d %b'),  # dzień
-                dict(dtickrange=[86400000, 2628000000], value='%d %b'),  # tydzień
-                dict(dtickrange=[2628000000, None], value='%b %Y')  # miesiąc
-            ]
-        )
-
-        # Zamiana angielskich nazw miesięcy na polskie
-        polskie_miesiace = {
-            'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
-            'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
-            'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
-        }
-
-        fig.for_each_xaxis(lambda x: x.update(
-            ticktext=[polskie_miesiace.get(t.split()[1], t.split()[1]) + ' ' + t.split()[0] if len(t.split()) > 1 else t 
-                      for t in fig.layout.xaxis.ticktext] if fig.layout.xaxis.ticktext else None
-        ))
-
-        st.plotly_chart(fig)
-
-        # Obliczenia trendu
-        if len(data) >= 50:
-            ma20 = data['Zamknięcie'].rolling(20).mean().iloc[-1]
-            ma50 = data['Zamknięcie'].rolling(50).mean().iloc[-1]
-            last = data['Zamknięcie'].iloc[-1]
-
-            if last > ma20 > ma50:
-                st.success("📈 Trend wzrostowy")
-            elif last < ma20 < ma50:
-                st.error("📉 Trend spadkowy")
-            else:
-                st.info("⚖️ Trend boczny")
-        else:
-            st.warning("Za mało danych do obliczenia trendu (potrzeba minimum 50 dni)")
+if symbol and data_od and data_do:
+    if data_od >= data_do:
+        st.error("Data początkowa musi być wcześniejsza niż data końcowa!")
     else:
-        st.warning("Nie udało się pobrać danych — sprawdź symbol lub zakres dat.")
+        # Pobieranie danych w wybranym zakresie
+        data = yf.download(symbol, start=data_od, end=data_do, progress=False)
+
+        # Spłaszczenie kolumn MultiIndex
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
+
+        # Zmiana nazw kolumn na polskie
+        data = data.rename(columns={
+            'Open': 'Otwarcie',
+            'High': 'Maksimum',
+            'Low': 'Minimum',
+            'Close': 'Zamknięcie',
+            'Volume': 'Wolumen'
+        })
+        data.index.name = 'Data'
+
+        if not data.empty:
+            st.subheader(f"Dane dla: {symbol}")
+            st.write(f"Pobrano {len(data)} dni notowań")
+            st.write(data.tail(10))
+
+            # Wykres
+            fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
+
+            # Polskie nazwy miesięcy
+            polskie_miesiace = {
+                'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
+                'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
+                'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
+            }
+
+            fig.update_layout(
+                xaxis_title="Data",
+                yaxis_title="Cena zamknięcia (USD)",
+                hovermode='x unified'
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Obliczenia trendu
+            if len(data) >= 50:
+                ma20 = data['Zamknięcie'].rolling(20).mean().iloc[-1]
+                ma50 = data['Zamknięcie'].rolling(50).mean().iloc[-1]
+                last = data['Zamknięcie'].iloc[-1]
+
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Aktualna cena", f"${last:.2f}")
+                with col2:
+                    st.metric("Średnia 20 dni", f"${ma20:.2f}")
+                with col3:
+                    st.metric("Średnia 50 dni", f"${ma50:.2f}")
+
+                if last > ma20 > ma50:
+                    st.success("📈 Trend wzrostowy - cena powyżej obu średnich kroczących")
+                elif last < ma20 < ma50:
+                    st.error("📉 Trend spadkowy - cena poniżej obu średnich kroczących")
+                else:
+                    st.info("⚖️ Trend boczny - cena między średnimi kroczącymi")
+            else:
+                st.warning(f"Za mało danych do obliczenia trendu (potrzeba minimum 50 dni, masz {len(data)} dni)")
+        else:
+            st.warning("Nie udało się pobrać danych — sprawdź symbol lub zakres dat. Możliwe, że giełda była zamknięta w tym okresie.")
