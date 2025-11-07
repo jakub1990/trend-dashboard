@@ -1,24 +1,8 @@
 import streamlit as st
-import requests
-import uuid
 
-GA_ID = "G-LVHMK6XJJR"
-GA_SECRET = "72pPIBtPTxqLNAo54HwLOg"
-
-def send_analytics_event(event_name="page_view"):
-    """Wyślij dane do Google Analytics przez Measurement Protocol"""
-    client_id = str(uuid.uuid4())  # unikalny identyfikator użytkownika
-    payload = {
-        "client_id": client_id,
-        "events": [{"name": event_name}]
-    }
-    url = f"https://www.google-analytics.com/mp/collect?measurement_id={GA_ID}&api_secret={GA_SECRET}"
-    try:
-        requests.post(url, json=payload)
-    except Exception as e:
-        print("Błąd wysyłania do GA:", e)
-
-send_analytics_event("page_view")
+st.components.v1.html("""
+<script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
+""", height=0)
 
 import yfinance as yf
 import pandas as pd
