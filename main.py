@@ -4,6 +4,17 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
+st.markdown("""
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LVHMK6XJJR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LVHMK6XJJR');
+</script>
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
 st.title("📊 Trend Dashboard")
