@@ -1,8 +1,4 @@
 import streamlit as st
-import yfinance as yf
-import pandas as pd
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
 
 st.markdown("""
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVHMK6XJJR"></script>
@@ -14,6 +10,13 @@ st.markdown("""
   gtag('config', 'G-LVHMK6XJJR');
 </script>
 """, unsafe_allow_html=True)
+
+
+import yfinance as yf
+import pandas as pd
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
+
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
