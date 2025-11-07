@@ -11,17 +11,6 @@ st.components.v1.html(f"""
     </script>
 """, height=0, width=0)
 
-st.markdown("""
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LVHMK6XJJR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-LVHMK6XJJR');
-</script>
-""", unsafe_allow_html=True)
-
 
 import yfinance as yf
 import pandas as pd
