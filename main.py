@@ -17,17 +17,27 @@ if symbol:
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
 
+    # Zmiana nazw kolumn na polskie
+    data = data.rename(columns={
+        'Open': 'Otwarcie',
+        'High': 'Maksimum',
+        'Low': 'Minimum',
+        'Close': 'Zamknięcie',
+        'Volume': 'Wolumen'
+    })
+    data.index.name = 'Data'
+
     if not data.empty:
         st.subheader(f"Dane dla: {symbol}")
         st.write(data.tail())
 
-        fig = px.line(data, x=data.index, y='Close', title=f'Ceny zamknięcia {symbol}')
+        fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
         st.plotly_chart(fig)
 
         # Obliczenia trendu
-        ma20 = data['Close'].rolling(20).mean().iloc[-1]
-        ma50 = data['Close'].rolling(50).mean().iloc[-1]
-        last = data['Close'].iloc[-1]
+        ma20 = data['Zamknięcie'].rolling(20).mean().iloc[-1]
+        ma50 = data['Zamknięcie'].rolling(50).mean().iloc[-1]
+        last = data['Zamknięcie'].iloc[-1]
 
         if last > ma20 > ma50:
             st.success("📈 Trend wzrostowy")
