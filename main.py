@@ -30,14 +30,13 @@ if symbol and data_od and data_do:
     if data_od >= data_do:
         st.error("Data początkowa musi być wcześniejsza niż data końcowa!")
     else:
-        # Wyświetl wybrane daty - to pokazuje co WYBRAŁEŚ
+        # Wyświetl wybrane daty
         st.info(f"🔍 Wybrany zakres: {data_od.strftime('%d-%m-%Y')} → {data_do.strftime('%d-%m-%Y')}")
 
-        # Pobieranie danych w wybranym zakresie - BEZ CACHE
+        # Pobieranie danych w wybranym zakresie
         with st.spinner('Pobieram dane z Yahoo Finance...'):
-            # Konwertuj na string aby uniknąć problemów
             start_str = data_od.strftime('%Y-%m-%d')
-            end_str = (data_do + timedelta(days=1)).strftime('%Y-%m-%d')  # +1 dzień bo end jest exclusive
+            end_str = (data_do + timedelta(days=1)).strftime('%Y-%m-%d')
 
             data = yf.download(symbol, start=start_str, end=end_str, progress=False, auto_adjust=True)
 
@@ -58,7 +57,7 @@ if symbol and data_od and data_do:
         if not data.empty:
             st.subheader(f"Dane dla: {symbol}")
 
-            # Wyświetl faktyczny zakres pobranych danych - to pokazuje co FAKTYCZNIE pobrano
+            # Wyświetl faktyczny zakres pobranych danych
             rzeczywisty_od = data.index.min().strftime('%d-%m-%Y')
             rzeczywisty_do = data.index.max().strftime('%d-%m-%Y')
 
@@ -66,9 +65,14 @@ if symbol and data_od and data_do:
             st.write(f"📅 Pierwsza data: **{rzeczywisty_od}**")
             st.write(f"📅 Ostatnia data: **{rzeczywisty_do}**")
 
-            # Tabelka - pokaż WSZYSTKIE dane jeśli mało, lub ostatnie 15
-            st.write(f"**{'Wszystkie' if len(data) <= 15 else 'Ostatnie 15'} notowań:**")
-            st.dataframe(data.tail(15) if len(data) > 15 else data, width='stretch')
+            # Tabelka - WSZYSTKIE dane z możliwością przewijania
+            st.write("**Wszystkie notowania (można przewijać i sortować):**")
+            # height=400 daje przewijalną tabelę
+            st.dataframe(data, height=400, width='stretch')
+
+            # Opcjonalnie: pokaż też ostatnie 10 wpisów wyraźnie
+            with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
+                st.dataframe(data.tail(10), width='stretch')
 
             # Wykres
             fig = px.line(data, x=data.index, y='Zamknięcie', title=f'Ceny zamknięcia {symbol}')
@@ -107,5 +111,5 @@ if symbol and data_od and data_do:
             st.error(f"❌ Brak danych dla {symbol} w zakresie {data_od.strftime('%d-%m-%Y')} - {data_do.strftime('%d-%m-%Y')}")
             st.write("Możliwe przyczyny:")
             st.write("- Nieprawidłowy symbol")
-            st.write("- Giełda była zamknięta w całym wybranym okresie (weekendy/święta)")
+            st.write("- Giełda była zamknięta w całym wybranym okresie")
             st.write("- Brak historycznych danych dla tego symbolu")
