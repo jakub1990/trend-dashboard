@@ -9,25 +9,29 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
-
-# ---- Obsługa plików sitemap.xml i robots.txt ----
 from fastapi import FastAPI
 from starlette.responses import FileResponse
-from streamlit.web.server import Server
 
-# Pobierz instancję FastAPI, która działa w tle w Streamlit
-app = Server.get_current()._app
+# --- POPRAWIONA INTEGRACJA FASTAPI ZE STREAMLIT ---
+try:
+    from streamlit.web.server import server_util
 
+    # Pobierz działającą aplikację FastAPI z serwera Streamlit
+    app = server_util.get_app()
+except Exception as e:
+    print("⚠️ Nie udało się pobrać instancji serwera Streamlit:", e)
+    app = FastAPI()
+
+# --- ROUTES DLA GOOGLEBOTÓW ---
 @app.get("/sitemap.xml")
-def sitemap():
+def serve_sitemap():
     path = os.path.join(os.getcwd(), "sitemap.xml")
     return FileResponse(path, media_type="application/xml")
 
 @app.get("/robots.txt")
-def robots():
+def serve_robots():
     path = os.path.join(os.getcwd(), "robots.txt")
     return FileResponse(path, media_type="text/plain")
-
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
