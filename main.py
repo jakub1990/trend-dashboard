@@ -8,6 +8,7 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+import os
 
 # ---- Obsługa plików sitemap.xml i robots.txt ----
 from fastapi import FastAPI
