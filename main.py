@@ -36,7 +36,7 @@ st.subheader("🔍 Wybierz kryptowalutę")
 wybrana = st.selectbox(
     "Najpopularniejsze kryptowaluty:",
     options=list(kryptowaluty.keys()),
-    index=0  # Bitcoin domyślnie
+    index=0
 )
 
 symbol = kryptowaluty[wybrana]
@@ -80,21 +80,16 @@ if symbol and data_od and data_do:
     if data_od >= data_do:
         st.error("Data początkowa musi być wcześniejsza niż data końcowa!")
     else:
-        # Wyświetl wybrane daty
         st.info(f"🔍 Wybrany zakres: {data_od.strftime('%d-%m-%Y')} → {data_do.strftime('%d-%m-%Y')}")
-
-        # Pobieranie danych w wybranym zakresie
+        
         with st.spinner('Pobieram dane z Yahoo Finance...'):
             start_str = data_od.strftime('%Y-%m-%d')
             end_str = (data_do + timedelta(days=1)).strftime('%Y-%m-%d')
-
             data = yf.download(symbol, start=start_str, end=end_str, progress=False, auto_adjust=True)
 
-        # Spłaszczenie kolumn MultiIndex
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
-
-        # Zmiana nazw kolumn na polskie
+        
         data = data.rename(columns={
             'Open': 'Otwarcie',
             'High': 'Maksimum',
@@ -106,26 +101,22 @@ if symbol and data_od and data_do:
 
         if not data.empty:
             st.subheader(f"Dane dla: {symbol}")
-
-            # Wyświetl faktyczny zakres pobranych danych
+            
             rzeczywisty_od = data.index.min().strftime('%d-%m-%Y')
             rzeczywisty_do = data.index.max().strftime('%d-%m-%Y')
-
+            
             st.success(f"✅ Pobrano {len(data)} dni notowań")
             st.write(f"📅 Pierwsza data: **{rzeczywisty_od}**")
             st.write(f"📅 Ostatnia data: **{rzeczywisty_do}**")
-
-            # Tabelka - WSZYSTKIE dane z możliwością przewijania
+            
             st.write("**Wszystkie notowania (można przewijać i sortować):**")
             st.dataframe(data, height=400, width='stretch')
-
-            # Opcjonalnie: pokaż też ostatnie 10 wpisów wyraźnie
+            
             with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
                 st.dataframe(data.tail(10), width='stretch')
 
-            # Wykres z polskimi miesiącami używając graph_objects
             fig = go.Figure()
-
+            
             fig.add_trace(go.Scatter(
                 x=data.index,
                 y=data['Zamknięcie'],
@@ -134,15 +125,13 @@ if symbol and data_od and data_do:
                 line=dict(color='#636EFA', width=2),
                 hovertemplate='<b>%{x|%d-%m-%Y}</b><br>Cena: $%{y:.2f}<extra></extra>'
             ))
-
-            # Ustawienie polskich nazw miesięcy na osi X
+            
             fig.update_xaxes(
                 tickformat='%d %b %Y',
                 tickangle=-45,
-                dtick="M1" if len(data) > 365 else None  # Pokaż co miesiąc jeśli więcej niż rok danych
+                dtick="M1" if len(data) > 365 else None
             )
-
-            # Zamiana nazw miesięcy na polskie
+            
             fig.update_layout(
                 title=f'Ceny zamknięcia {symbol}',
                 xaxis_title="Data",
@@ -150,8 +139,7 @@ if symbol and data_od and data_do:
                 hovermode='x unified',
                 template='plotly_white'
             )
-
-            # Używamy JavaScript do zamiany nazw miesięcy
+            
             fig.update_xaxes(ticktext=[
                 zamien_na_polskie(d.strftime('%d %b %Y')) for d in pd.date_range(
                     start=data.index.min(), 
@@ -163,10 +151,9 @@ if symbol and data_od and data_do:
                 end=data.index.max(), 
                 freq='MS' if len(data) > 365 else '7D'
             ))
-
+            
             st.plotly_chart(fig, width='stretch')
 
-            # Obliczenia trendu
             if len(data) >= 50:
                 ma20 = data['Zamknięcie'].rolling(20).mean().iloc[-1]
                 ma50 = data['Zamknięcie'].rolling(50).mean().iloc[-1]
@@ -195,10 +182,6 @@ if symbol and data_od and data_do:
             st.write("- Brak historycznych danych dla tej kryptowaluty")
             st.write("- Sprawdź czy symbol jest w formacie XXX-USD (np. BTC-USD)")
 
-# Stopka
 st.divider()
-st.caption("📊 CryptoTrend.pl - Analizuj trendy kryptowalut")
-            st.write("Możliwe przyczyny:")
-            st.write("- Nieprawidłowy symbol")
-            st.write("- Giełda była zamknięta w całym wybranym okresie")
-            st.write("- Brak historycznych danych dla tego symbolu")
+st.caption("📊 CryptoTrend.pl - Analizuj trendy kryptowalut i podejmuj mądre decyzje inwestycyjne")
+
