@@ -2,7 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.io as pio
 from datetime import datetime, timedelta
 
 # ----------------------
@@ -27,9 +26,6 @@ st.markdown("""
     </head>
 """, unsafe_allow_html=True)
 
-# ----------------------
-# Ukrycie elementów Streamlit + Umami Analytics
-# ----------------------
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -39,9 +35,11 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+# ----------------------
+# Umami Analytics
+# ----------------------
 st.components.v1.html("""
-<script defer src="https://cloud.umami.is/script.js" 
-data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
 """, height=0)
 
 # ----------------------
@@ -97,15 +95,28 @@ col1, col2 = st.columns(2)
 with col1:
     data_od = st.date_input(
         "Data od:",
-        value=(datetime.now() - timedelta(days=90)).date(),
-        max_value=datetime.now().date()
+        value=datetime.now() - timedelta(days=90),
+        max_value=datetime.now()
     )
 with col2:
     data_do = st.date_input(
         "Data do:",
-        value=datetime.now().date(),
-        max_value=datetime.now().date()
+        value=datetime.now(),
+        max_value=datetime.now()
     )
+
+# ----------------------
+# Funkcja do zamiany angielskich nazw miesięcy na polskie
+# ----------------------
+def zamien_na_polskie(data_tekst):
+    miesiace = {
+        'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
+        'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
+        'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
+    }
+    for ang, pol in miesiace.items():
+        data_tekst = data_tekst.replace(ang, pol)
+    return data_tekst
 
 # ----------------------
 # Cache funkcji pobierania danych
@@ -144,13 +155,13 @@ if symbol and data_od and data_do:
             st.success(f"✅ Pobrano {len(data)} dni notowań")
             st.write(f"📅 Pierwsza data: **{data.index.min().strftime('%d-%m-%Y')}**")
             st.write(f"📅 Ostatnia data: **{data.index.max().strftime('%d-%m-%Y')}**")
-            st.dataframe(data, height=400, use_container_width=True)
+            st.dataframe(data, height=400, width='stretch')
 
             with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
-                st.dataframe(data.tail(10), use_container_width=True)
+                st.dataframe(data.tail(10), width='stretch')
 
             # ----------------------
-            # Wykres liniowy (polskie miesiące)
+            # Lazy loading wykresu
             # ----------------------
             if st.button("📈 Pokaż wykres cen zamknięcia"):
                 with st.spinner("Tworzę wykres..."):
@@ -160,8 +171,8 @@ if symbol and data_od and data_do:
                         y=data['Zamknięcie'],
                         mode='lines',
                         name='Cena zamknięcia',
-                        line=dict(width=2),
-                        hovertemplate='<b>%{x|%d %b %Y}</b><br>Cena: $%{y:.2f}<extra></extra>'
+                        line=dict(color='#636EFA', width=2),
+                        hovertemplate='<b>%{x|%d-%m-%Y}</b><br>Cena: $%{y:.2f}<extra></extra>'
                     ))
 
                     fig.update_xaxes(
@@ -175,57 +186,12 @@ if symbol and data_od and data_do:
                         xaxis_title="Data",
                         yaxis_title="Cena (USD)",
                         hovermode='x unified',
-                        template='plotly_white',
-                        locale='pl'
+                        template='plotly_white'
                     )
-                    st.plotly_chart(fig, use_container_width=True, config={'locale': 'pl'})
+                    st.plotly_chart(fig, width='stretch')
 
             # ----------------------
-            # Wykres świecowy (candlestick)
-            # ----------------------
-            if st.button("🕯️ Pokaż wykres świecowy (OHLC)"):
-                with st.spinner("Tworzę wykres świecowy..."):
-                    if {'Otwarcie', 'Maksimum', 'Minimum', 'Zamknięcie'}.issubset(data.columns):
-                        fig_c = go.Figure(
-                            data=[
-                                go.Candlestick(
-                                    x=data.index,
-                                    open=data['Otwarcie'],
-                                    high=data['Maksimum'],
-                                    low=data['Minimum'],
-                                    close=data['Zamknięcie'],
-                                    name='Świece'
-                                )
-                            ]
-                        )
-
-                        fig_c.update_layout(
-                            title=f'Wykres świecowy {symbol}',
-                            xaxis_title="Data",
-                            yaxis_title="Cena (USD)",
-                            hovermode='x unified',
-                            xaxis_rangeslider_visible=False,
-                            template='plotly_white',
-                            locale='pl'
-                        )
-
-                        fig_c.update_xaxes(tickformat='%d %b %Y', tickangle=-45)
-                        fig_c.update_traces(
-                            hovertemplate=(
-                                "<b>%{x|%d %b %Y}</b><br>"
-                                "Otwarcie: $%{open:.2f}<br>"
-                                "Maksimum: $%{high:.2f}<br>"
-                                "Minimum: $%{low:.2f}<br>"
-                                "Zamknięcie: $%{close:.2f}<extra></extra>"
-                            )
-                        )
-
-                        st.plotly_chart(fig_c, use_container_width=True, config={'locale': 'pl'})
-                    else:
-                        st.error("Brak wymaganych kolumn OHLC do wykresu świecowego.")
-
-            # ----------------------
-            # Średnie kroczące i trend
+            # Lazy loading średnich kroczących i trendu
             # ----------------------
             if len(data) >= 50:
                 if st.button("📊 Pokaż średnie kroczące i trend"):
@@ -239,11 +205,11 @@ if symbol and data_od and data_do:
                     col3.metric("Średnia 50 dni", f"${ma50:.2f}")
 
                     if last > ma20 > ma50:
-                        st.success("📈 Trend wzrostowy — cena powyżej obu średnich kroczących")
+                        st.success("📈 Trend wzrostowy - cena powyżej obu średnich kroczących")
                     elif last < ma20 < ma50:
-                        st.error("📉 Trend spadkowy — cena poniżej obu średnich kroczących")
+                        st.error("📉 Trend spadkowy - cena poniżej obu średnich kroczących")
                     else:
-                        st.info("⚖️ Trend boczny — cena między średnimi kroczącymi")
+                        st.info("⚖️ Trend boczny - cena między średnimi kroczącymi")
             else:
                 st.warning(f"⚠️ Za mało danych do obliczenia trendu (potrzeba minimum 50 dni, masz {len(data)} dni)")
         else:
