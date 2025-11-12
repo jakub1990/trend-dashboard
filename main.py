@@ -43,9 +43,12 @@ symbol = kryptowaluty[wybrana]
 
 # Opcja wpisania własnego symbolu
 with st.expander("💡 Lub wpisz własny symbol"):
+    st.caption("Wpisz symbol i naciśnij Enter")
     custom_symbol = st.text_input(
-        "Symbol (format: XXX-USD, np. ADA-USD):",
-        placeholder="np. DOT-USD"
+        "Symbol (format: XXX-USD):",
+        placeholder="np. DOT-USD, AVAX-USD",
+        help="Wpisz symbol kryptowaluty i naciśnij Enter aby zastosować",
+        label_visibility="visible"
     )
     if custom_symbol:
         symbol = custom_symbol.upper()
