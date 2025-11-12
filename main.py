@@ -10,21 +10,6 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
 
-# --- Obsługa robots.txt i sitemap.xml bez FastAPI ---
-query_params = st.experimental_get_query_params()
-path = os.environ.get("PATH_INFO", "")
-
-# W Render i Replit PATH_INFO może być pusty, więc sprawdzamy także URL z przeglądarki
-if "robots.txt" in st.experimental_get_url_query_params() or st.query_params.get("path") == "robots.txt":
-    with open("robots.txt", "r", encoding="utf-8") as f:
-        st.text(f.read())
-    st.stop()
-
-elif "sitemap.xml" in st.experimental_get_url_query_params() or st.query_params.get("path") == "sitemap.xml":
-    with open("sitemap.xml", "r", encoding="utf-8") as f:
-        st.text(f.read())
-    st.stop()
-
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
 st.title("📊 Trend Dashboard")
