@@ -3,19 +3,52 @@ import streamlit as st
 st.components.v1.html("""
 <script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
 """, height=0)
-
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import os
 
-st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
+st.set_page_config(page_title="CryptoTrend.pl", page_icon="₿")
 
-st.title("📊 Trend Dashboard")
-st.write("Sprawdź trendy akcji lub kryptowalut w prosty sposób.")
+st.title("₿ CryptoTrend.pl")
+st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne.")
 
-symbol = st.text_input("Podaj symbol (np. AAPL, BTC-USD):", "AAPL")
+# Popularne kryptowaluty z podpowiedziami
+kryptowaluty = {
+    "Bitcoin (BTC)": "BTC-USD",
+    "Ethereum (ETH)": "ETH-USD",
+    "Tether (USDT)": "USDT-USD",
+    "BNB (BNB)": "BNB-USD",
+    "Solana (SOL)": "SOL-USD",
+    "XRP (XRP)": "XRP-USD",
+    "Cardano (ADA)": "ADA-USD",
+    "Dogecoin (DOGE)": "DOGE-USD",
+    "Polygon (MATIC)": "MATIC-USD",
+    "Polkadot (DOT)": "DOT-USD",
+    "Litecoin (LTC)": "LTC-USD",
+    "Shiba Inu (SHIB)": "SHIB-USD",
+    "Avalanche (AVAX)": "AVAX-USD",
+    "Chainlink (LINK)": "LINK-USD",
+    "Uniswap (UNI)": "UNI-USD"
+}
+
+st.subheader("🔍 Wybierz kryptowalutę")
+wybrana = st.selectbox(
+    "Najpopularniejsze kryptowaluty:",
+    options=list(kryptowaluty.keys()),
+    index=0  # Bitcoin domyślnie
+)
+
+symbol = kryptowaluty[wybrana]
+
+# Opcja wpisania własnego symbolu
+with st.expander("💡 Lub wpisz własny symbol"):
+    custom_symbol = st.text_input(
+        "Symbol (format: XXX-USD, np. ADA-USD):",
+        placeholder="np. DOT-USD"
+    )
+    if custom_symbol:
+        symbol = custom_symbol.upper()
 
 # Wybór zakresu dat
 col1, col2 = st.columns(2)
@@ -157,6 +190,14 @@ if symbol and data_od and data_do:
                 st.warning(f"⚠️ Za mało danych do obliczenia trendu (potrzeba minimum 50 dni, masz {len(data)} dni)")
         else:
             st.error(f"❌ Brak danych dla {symbol} w zakresie {data_od.strftime('%d-%m-%Y')} - {data_do.strftime('%d-%m-%Y')}")
+            st.write("Możliwe przyczyny:")
+            st.write("- Nieprawidłowy symbol kryptowaluty")
+            st.write("- Brak historycznych danych dla tej kryptowaluty")
+            st.write("- Sprawdź czy symbol jest w formacie XXX-USD (np. BTC-USD)")
+
+# Stopka
+st.divider()
+st.caption("📊 CryptoTrend.pl - Analizuj trendy kryptowalut")
             st.write("Możliwe przyczyny:")
             st.write("- Nieprawidłowy symbol")
             st.write("- Giełda była zamknięta w całym wybranym okresie")
