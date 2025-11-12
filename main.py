@@ -9,29 +9,21 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
-from fastapi import FastAPI
-from starlette.responses import FileResponse
 
-# --- POPRAWIONA INTEGRACJA FASTAPI ZE STREAMLIT ---
-try:
-    from streamlit.web.server import server_util
+# --- Obsługa robots.txt i sitemap.xml bez FastAPI ---
+query_params = st.experimental_get_query_params()
+path = os.environ.get("PATH_INFO", "")
 
-    # Pobierz działającą aplikację FastAPI z serwera Streamlit
-    app = server_util.get_app()
-except Exception as e:
-    print("⚠️ Nie udało się pobrać instancji serwera Streamlit:", e)
-    app = FastAPI()
+# W Render i Replit PATH_INFO może być pusty, więc sprawdzamy także URL z przeglądarki
+if "robots.txt" in st.experimental_get_url_query_params() or st.query_params.get("path") == "robots.txt":
+    with open("robots.txt", "r", encoding="utf-8") as f:
+        st.text(f.read())
+    st.stop()
 
-# --- ROUTES DLA GOOGLEBOTÓW ---
-@app.get("/sitemap.xml")
-def serve_sitemap():
-    path = os.path.join(os.getcwd(), "sitemap.xml")
-    return FileResponse(path, media_type="application/xml")
-
-@app.get("/robots.txt")
-def serve_robots():
-    path = os.path.join(os.getcwd(), "robots.txt")
-    return FileResponse(path, media_type="text/plain")
+elif "sitemap.xml" in st.experimental_get_url_query_params() or st.query_params.get("path") == "sitemap.xml":
+    with open("sitemap.xml", "r", encoding="utf-8") as f:
+        st.text(f.read())
+    st.stop()
 
 st.set_page_config(page_title="Trend Dashboard", page_icon="📊")
 
