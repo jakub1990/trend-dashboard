@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+Allow: /app
 Sitemap: https://cryptotrend.pl/sitemap.xml
