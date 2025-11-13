@@ -3,23 +3,6 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import streamlit.components.v1 as components
-
-# Pobierz hostname z przeglądarki
-query_params = st.experimental_get_query_params()
-
-# Streamlit nie ma natywnego request.host, więc zrobimy redirect przez HTML meta
-components.html(
-    """
-    <script>
-    if (window.location.hostname === "www.app.cryptotrend.pl") {
-        const newUrl = window.location.href.replace("www.app.cryptotrend.pl", "app.cryptotrend.pl");
-        window.location.replace(newUrl);
-    }
-    </script>
-    """,
-    height=0,
-)
 
 # ----------------------
 # Streamlit: konfiguracja strony i ukrycie menu/stopki
