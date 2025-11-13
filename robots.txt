@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://jakub1990.github.io/cryptotrend-static/sitemap.xml
