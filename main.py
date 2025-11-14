@@ -31,6 +31,7 @@ hide_streamlit_style = """
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    .stAppHeader, .st-emotion-cache-1ffuo7c, .e3g0k5y1 {display: none;}
     </style>
 """
 st.html(hide_streamlit_style, unsafe_allow_html=True)
