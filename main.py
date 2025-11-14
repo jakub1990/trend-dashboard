@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.markdown("""
+st.html("""
     <head>
         <title>CryptoTrend.pl - Śledź trendy kryptowalut</title>
         <meta name="description" content="CryptoTrend.pl pozwala śledzić ceny i trendy kryptowalut w czasie rzeczywistym, analizować wykresy i podejmować lepsze decyzje inwestycyjne.">
@@ -33,7 +33,7 @@ hide_streamlit_style = """
     header {visibility: hidden;}
     </style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.html(hide_streamlit_style, unsafe_allow_html=True)
 
 # ----------------------
 # Umami Analytics
