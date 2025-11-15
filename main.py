@@ -36,12 +36,6 @@ hide_streamlit_style = """
 """
 st.html(hide_streamlit_style, unsafe_allow_html=True)
 
-# ----------------------
-# Umami Analytics
-# ----------------------
-st.components.v1.html("""
-<script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
-""", height=0)
 
 # ----------------------
 # Słownik popularnych kryptowalut
