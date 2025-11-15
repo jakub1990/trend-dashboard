@@ -4,7 +4,17 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="CryptoTrend.pl", page_icon="💰", layout="wide")
+st.set_page_config(
+    page_title="CryptoTrend.pl",
+    page_icon="💰",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
+)
 
 st.title("💰 CryptoTrend.pl")
 st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne")
@@ -157,8 +167,19 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
                         xaxis_title="Data",
                         yaxis_title="Cena (USD)",
                         hovermode='x unified',
-                        template='plotly_dark'
+                        template='plotly_dark',
+                        xaxis=dict(
+                            tickformat='%d %b %Y',
+                            tickformatmatchstring='%d %b %Y'
+                        )
                     )
+
+                    # Ustaw polskie nazwy miesięcy
+                    fig.update_xaxes(
+                        ticktext=[d.strftime('%d %b %Y').replace('Jan', 'Sty').replace('Feb', 'Lut').replace('Mar', 'Mar').replace('Apr', 'Kwi').replace('May', 'Maj').replace('Jun', 'Cze').replace('Jul', 'Lip').replace('Aug', 'Sie').replace('Sep', 'Wrz').replace('Oct', 'Paź').replace('Nov', 'Lis').replace('Dec', 'Gru') for d in pd.date_range(dane.index[0], dane.index[-1], periods=min(10, len(dane)))],
+                        tickvals=pd.date_range(dane.index[0], dane.index[-1], periods=min(10, len(dane)))
+                    )
+
                     st.plotly_chart(fig, use_container_width=True)
                 
                 with zakladka3:
@@ -198,4 +219,3 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
 
 st.divider()
 st.caption("CryptoTrend.pl - Panel analizy trendów kryptowalut")
-st.caption("💡 Wskazówka: Możesz wpisać dowolny symbol kryptowaluty dostępny na Yahoo Finance (np. PEPE, BONK, WIF)")
