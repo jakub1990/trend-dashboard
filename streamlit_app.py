@@ -21,6 +21,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Ukryj kotwice używając custom CSS
+st.markdown("""
+    <style>
+    .stMarkdown a[href^="#"] {
+        display: none !important;
+    }
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+        display: none !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Usuń kotwice używając markdown zamiast st.title() i st.subheader()
 st.markdown("<h1 style='margin:0'>📈 CryptoTrend.pl</h1>", unsafe_allow_html=True)
 st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne")
