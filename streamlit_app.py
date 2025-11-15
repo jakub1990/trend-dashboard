@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="CryptoTrend.pl", page_icon="💰", layout="wide")
 
 st.title("💰 CryptoTrend.pl")
-st.write("Track cryptocurrency trends and make better investment decisions")
+st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne")
 
-cryptos = {
+kryptowaluty = {
     "Bitcoin (BTC)": "BTC-USD",
     "Ethereum (ETH)": "ETH-USD",
     "Solana (SOL)": "SOL-USD",
@@ -20,82 +20,96 @@ cryptos = {
     "Litecoin (LTC)": "LTC-USD"
 }
 
-selected = st.selectbox("Select cryptocurrency:", list(cryptos.keys()))
-symbol = cryptos[selected]
+wybrana = st.selectbox("Wybierz kryptowalutę:", list(kryptowaluty.keys()))
+symbol = kryptowaluty[wybrana]
 
 col1, col2 = st.columns(2)
 with col1:
-    date_from = st.date_input("From:", value=datetime.now() - timedelta(days=90))
+    data_od = st.date_input("Od:", value=datetime.now() - timedelta(days=90))
 with col2:
-    date_to = st.date_input("To:", value=datetime.now())
+    data_do = st.date_input("Do:", value=datetime.now())
 
 @st.cache_data
-def load_data(symbol, start, end):
+def pobierz_dane(symbol, start, end):
     try:
         df = yf.download(symbol, start=start, end=end, progress=False)
+        if df.empty:
+            return pd.DataFrame()
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        df = df.dropna()
         return df
     except Exception as e:
-        st.error(f"Error loading data: {e}")
+        st.error(f"Błąd pobierania danych: {e}")
         return pd.DataFrame()
 
-if st.button("Load Data", type="primary"):
-    if date_from >= date_to:
-        st.error("Start date must be before end date")
+if st.button("Wczytaj dane", type="primary"):
+    if data_od >= data_do:
+        st.error("Data początkowa musi być wcześniejsza niż końcowa")
     else:
-        with st.spinner("Loading data..."):
-            data = load_data(symbol, date_from, date_to)
+        with st.spinner("Pobieranie danych..."):
+            dane = pobierz_dane(symbol, data_od, data_do)
             
-            if not data.empty:
-                st.success(f"Loaded {len(data)} days of data")
+            if not dane.empty and 'Close' in dane.columns:
+                st.success(f"Wczytano {len(dane)} dni danych")
                 
-                tab1, tab2, tab3 = st.tabs(["Data Table", "Price Chart", "Statistics"])
+                zakladka1, zakladka2, zakladka3 = st.tabs(["Tabela danych", "Wykres cen", "Statystyki"])
                 
-                with tab1:
-                    st.dataframe(data, use_container_width=True)
+                with zakladka1:
+                    st.dataframe(dane, use_container_width=True)
                 
-                with tab2:
+                with zakladka2:
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(
-                        x=data.index,
-                        y=data['Close'],
+                        x=dane.index,
+                        y=dane['Close'],
                         mode='lines',
-                        name='Close Price',
+                        name='Cena zamknięcia',
                         line=dict(color='#00D4FF', width=2)
                     ))
                     fig.update_layout(
-                        title=f"{symbol} Price History",
-                        xaxis_title="Date",
-                        yaxis_title="Price (USD)",
+                        title=f"Historia cen {symbol}",
+                        xaxis_title="Data",
+                        yaxis_title="Cena (USD)",
                         hovermode='x unified',
                         template='plotly_dark'
                     )
                     st.plotly_chart(fig, use_container_width=True)
                 
-                with tab3:
-                    col1, col2, col3, col4 = st.columns(4)
-                    col1.metric("Current Price", f"${data['Close'].iloc[-1]:.2f}")
-                    col2.metric("Highest", f"${data['High'].max():.2f}")
-                    col3.metric("Lowest", f"${data['Low'].min():.2f}")
-                    col4.metric("Average", f"${data['Close'].mean():.2f}")
-                    
-                    if len(data) >= 50:
-                        ma20 = data['Close'].rolling(20).mean().iloc[-1]
-                        ma50 = data['Close'].rolling(50).mean().iloc[-1]
-                        current = data['Close'].iloc[-1]
+                with zakladka3:
+                    try:
+                        cena_aktualna = float(dane['Close'].iloc[-1])
+                        cena_najwyzsza = float(dane['High'].max())
+                        cena_najnizsza = float(dane['Low'].min())
+                        cena_srednia = float(dane['Close'].mean())
                         
-                        st.subheader("Trend Analysis")
-                        col1, col2 = st.columns(2)
-                        col1.metric("20-day Moving Average", f"${ma20:.2f}")
-                        col2.metric("50-day Moving Average", f"${ma50:.2f}")
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("Cena aktualna", f"${cena_aktualna:.2f}")
+                        col2.metric("Najwyższa", f"${cena_najwyzsza:.2f}")
+                        col3.metric("Najniższa", f"${cena_najnizsza:.2f}")
+                        col4.metric("Średnia", f"${cena_srednia:.2f}")
                         
-                        if current > ma20 > ma50:
-                            st.success("Strong Uptrend - Price above both moving averages")
-                        elif current < ma20 < ma50:
-                            st.error("Strong Downtrend - Price below both moving averages")
+                        if len(dane) >= 50:
+                            ma20 = float(dane['Close'].rolling(20).mean().iloc[-1])
+                            ma50 = float(dane['Close'].rolling(50).mean().iloc[-1])
+                            
+                            st.subheader("Analiza trendu")
+                            col1, col2 = st.columns(2)
+                            col1.metric("Średnia krocząca 20-dniowa", f"${ma20:.2f}")
+                            col2.metric("Średnia krocząca 50-dniowa", f"${ma50:.2f}")
+                            
+                            if cena_aktualna > ma20 > ma50:
+                                st.success("Silny trend wzrostowy - cena powyżej obu średnich kroczących")
+                            elif cena_aktualna < ma20 < ma50:
+                                st.error("Silny trend spadkowy - cena poniżej obu średnich kroczących")
+                            else:
+                                st.info("Trend boczny - mieszane sygnały")
                         else:
-                            st.info("Sideways Trend - Mixed signals")
+                            st.warning(f"Za mało danych do analizy trendu (potrzeba minimum 50 dni, masz {len(dane)} dni)")
+                    except Exception as e:
+                        st.error(f"Błąd obliczania statystyk: {e}")
             else:
-                st.error("No data available for selected period")
+                st.error("Brak danych dla wybranego okresu")
 
 st.divider()
-st.caption("CryptoTrend.pl - Cryptocurrency trend analysis dashboard")
+st.caption("CryptoTrend.pl - Panel analizy trendów kryptowalut")
