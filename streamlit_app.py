@@ -18,12 +18,7 @@ st.set_page_config(
     page_title="CryptoTrend.pl",
     page_icon="💰",
     layout="wide",
-    initial_sidebar_state="collapsed",
-    menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': None
-    }
+    initial_sidebar_state="collapsed"
 )
 
 st.title("💰 CryptoTrend.pl")
