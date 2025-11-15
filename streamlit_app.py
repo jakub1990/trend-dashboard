@@ -16,12 +16,13 @@ except:
 
 st.set_page_config(
     page_title="CryptoTrend.pl",
-    page_icon="💰",
+    page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-st.title("💰 CryptoTrend.pl")
+# Usuń kotwice używając markdown zamiast st.title() i st.subheader()
+st.markdown("<h1 style='margin:0'>📈 CryptoTrend.pl</h1>", unsafe_allow_html=True)
 st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne")
 
 # Podstawowe popularne kryptowaluty
@@ -58,7 +59,7 @@ popularne_kryptowaluty = {
     "Injective (INJ)": "INJ-USD"
 }
 
-st.subheader("🔍 Wyszukaj kryptowalutę")
+st.markdown("<h2 style='margin:0'>🔍 Wyszukaj kryptowalutę</h2>", unsafe_allow_html=True)
 
 # Wybór: popularna lista lub własny symbol
 tryb = st.radio(
@@ -76,14 +77,14 @@ if tryb == "📋 Wybierz z popularnych":
 else:
     st.write("Wpisz symbol kryptowaluty (np. BTC, ETH, SOL)")
     col_a, col_b = st.columns([3, 1])
-    
+
     with col_a:
         wlasny_symbol = st.text_input(
             "Symbol kryptowaluty:",
             placeholder="np. BTC, ETH, SOL, PEPE...",
             help="Wpisz skrót kryptowaluty bez '-USD'"
         ).upper().strip()
-    
+
     with col_b:
         st.write("")
         st.write("")
@@ -94,7 +95,7 @@ else:
                     try:
                         test_data = yf.Ticker(test_symbol)
                         info = test_data.info
-                        
+
                         # Sprawdź czy dane są dostępne
                         if info and len(info) > 1 and 'symbol' in info:
                             st.success(f"✅ Znaleziono: **{wlasny_symbol}**")
@@ -106,7 +107,7 @@ else:
                     except Exception as e:
                         st.error(f"❌ Nie znaleziono kryptowaluty: **{wlasny_symbol}**")
                         st.write("Spróbuj innego symbolu lub wybierz z listy popularnych.")
-    
+
     if wlasny_symbol:
         symbol = f"{wlasny_symbol}-USD"
         st.info(f"Symbol do wczytania: **{symbol}**")
@@ -147,17 +148,17 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
     else:
         with st.spinner("Pobieranie danych..."):
             dane = pobierz_dane(symbol, data_od, data_do)
-            
+
             if not dane.empty and 'Zamknięcie' in dane.columns:
                 st.success(f"✅ Wczytano {len(dane)} dni danych dla {symbol}")
-                
+
                 zakladka1, zakladka2, zakladka3 = st.tabs(["📊 Tabela danych", "📈 Wykres cen", "📉 Statystyki"])
-                
+
                 with zakladka1:
                     dane_display = dane.copy()
                     dane_display.index.name = 'Data'
                     st.dataframe(dane_display, use_container_width=True)
-                
+
                 with zakladka2:
                     # Przygotuj polskie etykiety dat
                     num_ticks = min(10, len(dane))
@@ -198,29 +199,29 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
-                
+
                 with zakladka3:
                     try:
                         cena_aktualna = float(dane['Zamknięcie'].iloc[-1])
                         cena_najwyzsza = float(dane['Najwyższa'].max())
                         cena_najnizsza = float(dane['Najniższa'].min())
                         cena_srednia = float(dane['Zamknięcie'].mean())
-                        
+
                         col1, col2, col3, col4 = st.columns(4)
                         col1.metric("Cena aktualna", f"${cena_aktualna:.2f}")
                         col2.metric("Najwyższa", f"${cena_najwyzsza:.2f}")
                         col3.metric("Najniższa", f"${cena_najnizsza:.2f}")
                         col4.metric("Średnia", f"${cena_srednia:.2f}")
-                        
+
                         if len(dane) >= 50:
                             ma20 = float(dane['Zamknięcie'].rolling(20).mean().iloc[-1])
                             ma50 = float(dane['Zamknięcie'].rolling(50).mean().iloc[-1])
-                            
-                            st.subheader("Analiza trendu")
+
+                            st.markdown("<h3 style='margin:0'>Analiza trendu</h3>", unsafe_allow_html=True)
                             col1, col2 = st.columns(2)
                             col1.metric("Średnia krocząca 20-dniowa", f"${ma20:.2f}")
                             col2.metric("Średnia krocząca 50-dniowa", f"${ma50:.2f}")
-                            
+
                             if cena_aktualna > ma20 > ma50:
                                 st.success("🚀 Silny trend wzrostowy - cena powyżej obu średnich kroczących")
                             elif cena_aktualna < ma20 < ma50:
