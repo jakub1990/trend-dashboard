@@ -3,6 +3,16 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+import locale
+
+# Ustaw polską lokalizację dla dat
+try:
+    locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_TIME, 'Polish_Poland.1250')
+    except:
+        pass
 
 st.set_page_config(
     page_title="CryptoTrend.pl",
