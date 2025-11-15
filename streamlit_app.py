@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # ----------------------
-# Streamlit: konfiguracja strony i ukrycie menu/stopki
+# Streamlit: konfiguracja strony
 # ----------------------
 st.set_page_config(
     page_title="CryptoTrend.pl - Śledź trendy kryptowalut",
@@ -14,28 +14,24 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.html("""
-    <head>
-        <title>CryptoTrend.pl - Śledź trendy kryptowalut</title>
-        <meta name="description" content="CryptoTrend.pl pozwala śledzić ceny i trendy kryptowalut w czasie rzeczywistym, analizować wykresy i podejmować lepsze decyzje inwestycyjne.">
-        <meta name="robots" content="index, follow">
-        <link rel="icon" href="https://cryptotrend.pl/favicon.ico" type="image/x-icon">
-        <meta property="og:title" content="CryptoTrend.pl">
-        <meta property="og:description" content="Śledź ceny i trendy kryptowalut w czasie rzeczywistym.">
-        <meta property="og:type" content="website">
-    </head>
-""", unsafe_allow_html=True)
-
+# ----------------------
+# Ukrycie menu Streamlit
+# ----------------------
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .stAppHeader, .st-emotion-cache-1ffuo7c, .e3g0k5y1 {display: none;}
     </style>
 """
-st.html(hide_streamlit_style, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+# ----------------------
+# Umami Analytics
+# ----------------------
+st.markdown("""
+<script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
+""", unsafe_allow_html=True)
 
 # ----------------------
 # Słownik popularnych kryptowalut
@@ -101,19 +97,6 @@ with col2:
     )
 
 # ----------------------
-# Funkcja do zamiany angielskich nazw miesięcy na polskie
-# ----------------------
-def zamien_na_polskie(data_tekst):
-    miesiace = {
-        'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
-        'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
-        'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
-    }
-    for ang, pol in miesiace.items():
-        data_tekst = data_tekst.replace(ang, pol)
-    return data_tekst
-
-# ----------------------
 # Cache funkcji pobierania danych
 # ----------------------
 @st.cache_data
@@ -141,7 +124,7 @@ if symbol and data_od and data_do:
         st.info(f"🔍 Wybrany zakres: {data_od.strftime('%d-%m-%Y')} → {data_do.strftime('%d-%m-%Y')}")
         start_str = data_od.strftime('%Y-%m-%d')
         end_str = (data_do + timedelta(days=1)).strftime('%Y-%m-%d')
-        
+
         with st.spinner('Pobieram dane z Yahoo Finance...'):
             data = pobierz_dane(symbol, start_str, end_str)
 
@@ -150,10 +133,10 @@ if symbol and data_od and data_do:
             st.success(f"✅ Pobrano {len(data)} dni notowań")
             st.write(f"📅 Pierwsza data: **{data.index.min().strftime('%d-%m-%Y')}**")
             st.write(f"📅 Ostatnia data: **{data.index.max().strftime('%d-%m-%Y')}**")
-            st.dataframe(data, height=400, width='stretch')
+            st.dataframe(data, height=400)
 
             with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
-                st.dataframe(data.tail(10), width='stretch')
+                st.dataframe(data.tail(10))
 
             # ----------------------
             # Lazy loading wykresu
@@ -183,7 +166,7 @@ if symbol and data_od and data_do:
                         hovermode='x unified',
                         template='plotly_white'
                     )
-                    st.plotly_chart(fig, width='stretch')
+                    st.plotly_chart(fig, use_container_width=True)
 
             # ----------------------
             # Lazy loading średnich kroczących i trendu
