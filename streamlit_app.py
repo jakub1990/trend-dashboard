@@ -1,22 +1,17 @@
 import streamlit as st
+
+st.set_page_config(
+    page_title="CryptoTrend.pl - Sledz trendy kryptowalut",
+    page_icon="💰",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-# ----------------------
-# Streamlit: konfiguracja strony
-# ----------------------
-st.set_page_config(
-    page_title="CryptoTrend.pl - Śledź trendy kryptowalut",
-    page_icon="₿",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# ----------------------
-# Ukrycie menu Streamlit
-# ----------------------
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -26,16 +21,6 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# ----------------------
-# Umami Analytics
-# ----------------------
-st.markdown("""
-<script defer src="https://cloud.umami.is/script.js" data-website-id="c7d2a4c0-2ae9-406b-a38a-fdd313c83a1a"></script>
-""", unsafe_allow_html=True)
-
-# ----------------------
-# Słownik popularnych kryptowalut
-# ----------------------
 kryptowaluty = {
     "Bitcoin (BTC)": "BTC-USD",
     "Ethereum (ETH)": "ETH-USD",
@@ -54,13 +39,10 @@ kryptowaluty = {
     "Uniswap (UNI)": "UNI-USD"
 }
 
-st.title("₿ CryptoTrend.pl")
-st.write("Śledź trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne.")
+st.title("💰 CryptoTrend.pl")
+st.write("Sledz trendy kryptowalut i podejmuj lepsze decyzje inwestycyjne.")
 
-# ----------------------
-# Wybór kryptowaluty
-# ----------------------
-st.subheader("🔍 Wybierz kryptowalutę")
+st.subheader("🔍 Wybierz kryptowalute")
 wybrana = st.selectbox(
     "Najpopularniejsze kryptowaluty:",
     options=list(kryptowaluty.keys()),
@@ -68,20 +50,17 @@ wybrana = st.selectbox(
 )
 symbol = kryptowaluty[wybrana]
 
-with st.expander("💡 Lub wpisz własny symbol"):
-    st.caption("Wpisz symbol i naciśnij Enter")
+with st.expander("💡 Lub wpisz wlasny symbol"):
+    st.caption("Wpisz symbol i nacisnij Enter")
     custom_symbol = st.text_input(
         "Symbol (format: XXX-USD):",
         placeholder="np. DOT-USD, AVAX-USD",
-        help="Wpisz symbol kryptowaluty i naciśnij Enter aby zastosować",
+        help="Wpisz symbol kryptowaluty i nacisnij Enter aby zastosowac",
         label_visibility="visible"
     )
     if custom_symbol:
         symbol = custom_symbol.upper()
 
-# ----------------------
-# Wybór zakresu dat
-# ----------------------
 col1, col2 = st.columns(2)
 with col1:
     data_od = st.date_input(
@@ -96,9 +75,6 @@ with col2:
         max_value=datetime.now()
     )
 
-# ----------------------
-# Cache funkcji pobierania danych
-# ----------------------
 @st.cache_data
 def pobierz_dane(symbol, start_str, end_str):
     df = yf.download(symbol, start=start_str, end=end_str, progress=False, auto_adjust=True)
@@ -108,18 +84,15 @@ def pobierz_dane(symbol, start_str, end_str):
         'Open': 'Otwarcie',
         'High': 'Maksimum',
         'Low': 'Minimum',
-        'Close': 'Zamknięcie',
+        'Close': 'Zamkniecie',
         'Volume': 'Wolumen'
     })
     df.index.name = 'Data'
     return df
 
-# ----------------------
-# Pobranie i wyświetlenie danych
-# ----------------------
 if symbol and data_od and data_do:
     if data_od >= data_do:
-        st.error("Data początkowa musi być wcześniejsza niż data końcowa!")
+        st.error("Data poczatkowa musi byc wczesniejsza niz data koncowa!")
     else:
         st.info(f"🔍 Wybrany zakres: {data_od.strftime('%d-%m-%Y')} → {data_do.strftime('%d-%m-%Y')}")
         start_str = data_od.strftime('%Y-%m-%d')
@@ -130,25 +103,22 @@ if symbol and data_od and data_do:
 
         if not data.empty:
             st.subheader(f"Dane dla: {symbol}")
-            st.success(f"✅ Pobrano {len(data)} dni notowań")
+            st.success(f"✅ Pobrano {len(data)} dni notowan")
             st.write(f"📅 Pierwsza data: **{data.index.min().strftime('%d-%m-%Y')}**")
             st.write(f"📅 Ostatnia data: **{data.index.max().strftime('%d-%m-%Y')}**")
             st.dataframe(data, height=400)
 
-            with st.expander("📊 Pokaż tylko ostatnie 10 notowań"):
+            with st.expander("📊 Pokaz tylko ostatnie 10 notowan"):
                 st.dataframe(data.tail(10))
 
-            # ----------------------
-            # Lazy loading wykresu
-            # ----------------------
-            if st.button("📈 Pokaż wykres cen zamknięcia"):
-                with st.spinner("Tworzę wykres..."):
+            if st.button("📈 Pokaz wykres cen zamkniecia"):
+                with st.spinner("Tworze wykres..."):
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(
                         x=data.index,
-                        y=data['Zamknięcie'],
+                        y=data['Zamkniecie'],
                         mode='lines',
-                        name='Cena zamknięcia',
+                        name='Cena zamkniecia',
                         line=dict(color='#636EFA', width=2),
                         hovertemplate='<b>%{x|%d-%m-%Y}</b><br>Cena: $%{y:.2f}<extra></extra>'
                     ))
@@ -160,7 +130,7 @@ if symbol and data_od and data_do:
                     )
 
                     fig.update_layout(
-                        title=f'Ceny zamknięcia {symbol}',
+                        title=f'Ceny zamkniecia {symbol}',
                         xaxis_title="Data",
                         yaxis_title="Cena (USD)",
                         hovermode='x unified',
@@ -168,31 +138,28 @@ if symbol and data_od and data_do:
                     )
                     st.plotly_chart(fig, use_container_width=True)
 
-            # ----------------------
-            # Lazy loading średnich kroczących i trendu
-            # ----------------------
             if len(data) >= 50:
-                if st.button("📊 Pokaż średnie kroczące i trend"):
-                    ma20 = data['Zamknięcie'].rolling(20).mean().iloc[-1]
-                    ma50 = data['Zamknięcie'].rolling(50).mean().iloc[-1]
-                    last = data['Zamknięcie'].iloc[-1]
+                if st.button("📊 Pokaz srednie kroczace i trend"):
+                    ma20 = data['Zamkniecie'].rolling(20).mean().iloc[-1]
+                    ma50 = data['Zamkniecie'].rolling(50).mean().iloc[-1]
+                    last = data['Zamkniecie'].iloc[-1]
 
                     col1, col2, col3 = st.columns(3)
                     col1.metric("Aktualna cena", f"${last:.2f}")
-                    col2.metric("Średnia 20 dni", f"${ma20:.2f}")
-                    col3.metric("Średnia 50 dni", f"${ma50:.2f}")
+                    col2.metric("Srednia 20 dni", f"${ma20:.2f}")
+                    col3.metric("Srednia 50 dni", f"${ma50:.2f}")
 
                     if last > ma20 > ma50:
-                        st.success("📈 Trend wzrostowy - cena powyżej obu średnich kroczących")
+                        st.success("📈 Trend wzrostowy - cena powyzej obu srednich kroczacych")
                     elif last < ma20 < ma50:
-                        st.error("📉 Trend spadkowy - cena poniżej obu średnich kroczących")
+                        st.error("📉 Trend spadkowy - cena ponizej obu srednich kroczacych")
                     else:
-                        st.info("⚖️ Trend boczny - cena między średnimi kroczącymi")
+                        st.info("⚖️ Trend boczny - cena miedzy srednimi kroczacymi")
             else:
-                st.warning(f"⚠️ Za mało danych do obliczenia trendu (potrzeba minimum 50 dni, masz {len(data)} dni)")
+                st.warning(f"⚠️ Za malo danych do obliczenia trendu (potrzeba minimum 50 dni, masz {len(data)} dni)")
         else:
             st.error(f"❌ Brak danych dla {symbol} w wybranym zakresie")
-            st.write("- Możliwe przyczyny: nieprawidłowy symbol, brak danych historycznych, niepoprawny format XXX-USD")
+            st.write("- Mozliwe przyczyny: nieprawidlowy symbol, brak danych historycznych, niepoprawny format XXX-USD")
 
 st.divider()
-st.caption("📊 CryptoTrend.pl - Analizuj trendy kryptowalut i podejmuj mądre decyzje inwestycyjne")
+st.caption("📊 CryptoTrend.pl - Analizuj trendy kryptowalut i podejmuj madre decyzje inwestycyjne")
