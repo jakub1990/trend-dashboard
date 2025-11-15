@@ -154,6 +154,23 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
                     st.dataframe(dane_display, use_container_width=True)
                 
                 with zakladka2:
+                    # Przygotuj polskie etykiety dat
+                    num_ticks = min(10, len(dane))
+                    tick_dates = pd.date_range(dane.index[0], dane.index[-1], periods=num_ticks)
+                    tick_labels = []
+
+                    miesiace_pl = {
+                        'Jan': 'Sty', 'Feb': 'Lut', 'Mar': 'Mar', 'Apr': 'Kwi',
+                        'May': 'Maj', 'Jun': 'Cze', 'Jul': 'Lip', 'Aug': 'Sie',
+                        'Sep': 'Wrz', 'Oct': 'Paź', 'Nov': 'Lis', 'Dec': 'Gru'
+                    }
+
+                    for d in tick_dates:
+                        label = d.strftime('%d %b %Y')
+                        for eng, pol in miesiace_pl.items():
+                            label = label.replace(eng, pol)
+                        tick_labels.append(label)
+
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(
                         x=dane.index,
@@ -167,17 +184,12 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
                         xaxis_title="Data",
                         yaxis_title="Cena (USD)",
                         hovermode='x unified',
-                        template='plotly_dark',
-                        xaxis=dict(
-                            tickformat='%d %b %Y',
-                            tickformatmatchstring='%d %b %Y'
-                        )
+                        template='plotly_dark'
                     )
 
-                    # Ustaw polskie nazwy miesięcy
                     fig.update_xaxes(
-                        ticktext=[d.strftime('%d %b %Y').replace('Jan', 'Sty').replace('Feb', 'Lut').replace('Mar', 'Mar').replace('Apr', 'Kwi').replace('May', 'Maj').replace('Jun', 'Cze').replace('Jul', 'Lip').replace('Aug', 'Sie').replace('Sep', 'Wrz').replace('Oct', 'Paź').replace('Nov', 'Lis').replace('Dec', 'Gru') for d in pd.date_range(dane.index[0], dane.index[-1], periods=min(10, len(dane)))],
-                        tickvals=pd.date_range(dane.index[0], dane.index[-1], periods=min(10, len(dane)))
+                        ticktext=tick_labels,
+                        tickvals=tick_dates
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
