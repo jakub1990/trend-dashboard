@@ -139,7 +139,9 @@ if symbol and st.button("📥 Wczytaj dane", type="primary"):
                 zakladka1, zakladka2, zakladka3 = st.tabs(["📊 Tabela danych", "📈 Wykres cen", "📉 Statystyki"])
                 
                 with zakladka1:
-                    st.dataframe(dane, use_container_width=True)
+                    dane_display = dane.copy()
+                    dane_display.index.name = 'Data'
+                    st.dataframe(dane_display, use_container_width=True)
                 
                 with zakladka2:
                     fig = go.Figure()
